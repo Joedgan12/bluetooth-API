@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bluetooth Device API</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+flex-direction: column;
+}
+button {
+padding: 10px 20px;
+font-size: 1rem;
+cursor: pointer;
+border-radius: 5px;
+border: none;
+background-color: #007bff;
+color: white;
+}
+p {
+margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<button id="connectBtn">Connect to Bluetooth Device</button>
+<p id="status">No device connected</p>
+<script>
+const connectBtn = document.getElementById('connectBtn');
+const status = document.getElementById('status');
+
+async function connectBluetoothDevice() {
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: ['battery_service']
+    });
+
+    status.textContent = `Connected to: ${device.name}`;
+
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService('battery_service');
+    const batteryLevel = await service.getCharacteristic('battery_level');
+
+    const value = await batteryLevel.readValue();
+    const batteryPercentage = value.getUint8(0);
+
+    status.textContent += ` Battery Level: ${batteryPercentage}%`;
+  } catch (error) {
+    status.textContent = `Error: ${error.message}`;
+  }
+}
+
+connectBtn.addEventListener('click', connectBluetoothDevice);
+</script>
+</body>
+</html>
